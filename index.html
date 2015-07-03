@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<div>
+    <button id="button" onclick="onButtonClick()">Run</button>
+</div>
+<canvas id="main_canvas">
+Your browser does not support the HTML 5 Canvas element.
+</canvas>
+
+
+<script>
+
+canvas = document.getElementById("main_canvas");
+context = canvas.getContext("2d");
+button = document.getElementById("button");
+
+canvas_size = 1000;
+context.canvas.width  = canvas_size;
+context.canvas.height = canvas_size;
+canvas.width = canvas_size;
+canvas.height = canvas_size;
+
+size = 100;
+square = 10;
+
+board = get_board();
+running = false;
+
+function get_board() {
+    // Create 2d array
+    board = new Array(size);
+    for (var i = 0; i < size; ++i) {
+        board[i] = new Array(size);
+        for (var j = 0; j < size; ++j) {
+            board[i][j] = 0;
+        }
+    }
+    return board;
+}
+
+function get_neighbors(x, y) {
+
+    var count = 0;
+    for (var i = -1; i < 2; ++i) {
+        for (var j = -1; j < 2; ++j) {
+            var nx = x + i;
+            var ny = y + j;
+            if (i == 0 && j == 0)
+                continue;
+            if (nx < 0 || nx >= size)
+                continue;
+            if (ny < 0 || ny >= size)
+                continue;
+
+            count += board[nx][ny];
+        }
+    }
+    console.log(x + "," + y + ": " + count);
+    return count;
+}
+
+function update() {
+    var new_board = new Array(size);
+    for (var i = 0; i < size; ++i) {
+        new_board[i] = new Array(size);
+        for (var j = 0; j < size; ++j) {
+            var value = board[i][j];
+            new_board[i][j] = value;
+            var neighbors = get_neighbors(i, j);
+            if (value == 1) {
+                if (neighbors < 2 || neighbors > 3)
+                    new_board[i][j] = 0;
+            } else {
+                if (neighbors == 3)
+                    new_board[i][j] = 1;
+            }
+        }
+    }
+//
+    return new_board;
+}
+
+
+function toggle(x, y) {
+    board[x][y] = 1 - board[x][y];
+}
+
+
+function main() {
+    context.clearRect ( 0 , 0 , canvas.width , canvas.height );
+    for (var i = 0; i < size; ++i) {
+        for (var j = 0; j < size; ++j) {
+            context.fillStyle = board[i][j] == 1 ? "black" : "magenta";
+            context.fillRect(i * square, j * square, square - 1, square - 1);
+        }
+    }
+
+    if (running)
+        board = update();
+}
+
+function onButtonClick() {
+   running = ~running;
+   button.innerText = button.innerText == 'Run' ? 'Stop' : 'Run';
+}
+
+function onMouseDown(e) {
+    if (running)
+        return;
+
+    var x = Math.floor(e.offsetX / square);
+    var y = Math.floor(e.offsetY / square);
+    toggle(x, y);
+}
+
+window.onload = function() {
+    canvas.addEventListener("mousedown", onMouseDown, false);
+    main();
+    setInterval("main()", 30);
+};
+
+</script>
+
+</html>
